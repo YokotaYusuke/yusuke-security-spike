@@ -6,6 +6,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.core.userdetails.User
 import org.springframework.security.core.userdetails.UserDetailsService
+import org.springframework.security.crypto.password.DelegatingPasswordEncoder
 import org.springframework.security.crypto.password.NoOpPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.provisioning.InMemoryUserDetailsManager
@@ -21,7 +22,7 @@ class SecurityConfig {
                 it.requestMatchers("/").permitAll()
                 it.anyRequest().authenticated()
             }
-            .httpBasic{}
+            .formLogin{}
         return http.build()
     }
 
@@ -29,7 +30,7 @@ class SecurityConfig {
     fun userDetailsService(): UserDetailsService {
         val user = User.builder()
             .username("user")
-            .password("password")
+            .password("{noop}password")
             .roles("USER")
             .build()
         return InMemoryUserDetailsManager(user)
@@ -37,6 +38,9 @@ class SecurityConfig {
 
     @Bean
     fun passwordEncoder(): PasswordEncoder {
-        return NoOpPasswordEncoder.getInstance()
+        val idFOrEncode = "noop"
+        val encoders: MutableMap<String, PasswordEncoder> = mutableMapOf()
+        encoders[idFOrEncode] = NoOpPasswordEncoder.getInstance()
+        return DelegatingPasswordEncoder(idFOrEncode, encoders)
     }
 }
