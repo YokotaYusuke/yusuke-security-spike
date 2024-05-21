@@ -18,6 +18,7 @@ class SecurityConfig {
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http
             .authorizeHttpRequests {
+                it.requestMatchers("/").permitAll()
                 it.anyRequest().authenticated()
             }
             .httpBasic{}
@@ -25,7 +26,7 @@ class SecurityConfig {
     }
 
     @Bean
-    fun userDetailsService(passwordEncoder: PasswordEncoder): UserDetailsService {
+    fun userDetailsService(): UserDetailsService {
         val user = User.builder()
             .username("user")
             .password("password")
