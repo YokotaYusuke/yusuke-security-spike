@@ -11,9 +11,12 @@ import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.userdetails.User
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService
+import org.springframework.security.crypto.argon2.Argon2PasswordEncoder
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.DelegatingPasswordEncoder
 import org.springframework.security.crypto.password.NoOpPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
+import org.springframework.security.crypto.password.Pbkdf2PasswordEncoder
 import org.springframework.security.provisioning.JdbcUserDetailsManager
 import org.springframework.security.web.SecurityFilterChain
 import javax.sql.DataSource
@@ -36,7 +39,7 @@ class SecurityConfig {
     fun userDetailsService(dataSource: DataSource): UserDetailsService {
         val user = User.builder()
             .username("user")
-            .password("{noop}password")
+            .password("{bcrypt}$2a$10\$ofhSMQ38QHWK3aCOZvAK.eneoaAnSHAFc0M48ud7Xyig3H8KUwUOm")
             .roles("USER")
             .build()
 
@@ -47,15 +50,19 @@ class SecurityConfig {
             .authorities("USER")
             .build()
         val users = JdbcUserDetailsManager(dataSource)
+        users.createUser(user)
         users.createUser(myUser2)
         return users
     }
 
     @Bean
     fun passwordEncoder(): PasswordEncoder {
-        val idFOrEncode = "noop"
+        val idFOrEncode = "bcrypt"
         val encoders: MutableMap<String, PasswordEncoder> = mutableMapOf()
-        encoders[idFOrEncode] = NoOpPasswordEncoder.getInstance()
+        encoders[idFOrEncode] = BCryptPasswordEncoder()
+        encoders["argon2"] = Argon2PasswordEncoder.defaultsForSpringSecurity_v5_8()
+        encoders["pbkdf2"] = Pbkdf2PasswordEncoder.defaultsForSpringSecurity_v5_8()
+        encoders["noop"] = NoOpPasswordEncoder.getInstance()
         return DelegatingPasswordEncoder(idFOrEncode, encoders)
     }
 
